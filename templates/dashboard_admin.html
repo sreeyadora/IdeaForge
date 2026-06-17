@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IdeaForge ⚡</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a; --bg2: #1e293b; --surface: rgba(30,41,59,0.95);
+      --border: rgba(148,163,184,0.12); --accent: #6366f1; --accent2: #f43f5e;
+      --accent3: #10b981; --accent4: #f59e0b; --text: #f1f5f9; --muted: #94a3b8;
+      --radius: 16px; --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      background-attachment: fixed; color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh;
+    }
+    /* ── Nav ── */
+    nav {
+      background: rgba(15,23,42,0.9); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; display: flex; align-items: center; gap: 1.5rem;
+      height: 60px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px);
+    }
+    .nav-brand {
+      font-size: 1.3rem; font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-link {
+      color: var(--muted); font-size: 0.88rem; font-weight: 500; cursor: pointer;
+      padding: 0.35rem 0.7rem; border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+      border: none; background: none; font-family: inherit;
+    }
+    .nav-link:hover, .nav-link.active { color: var(--text); background: rgba(99,102,241,0.12); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-user { font-size: 0.8rem; color: var(--muted); }
+    /* ── Pages ── */
+    .page { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+    .page.active { display: block; }
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow);
+    }
+    h1 {
+      font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem;
+      background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    h2 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--accent); margin-bottom: 1rem; }
+    p.sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    /* ── Form ── */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 0.35rem; }
+    input, textarea, select {
+      width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.75rem 1rem; color: var(--text);
+      font-size: 0.95rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    /* ── Buttons ── */
+    .btn {
+      padding: 0.65rem 1.4rem; border-radius: 10px; border: none;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s; font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+    .btn-primary:hover { background: #818cf8; transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-success { background: var(--accent3); color: #fff; }
+    .btn-success:hover { background: #059669; transform: translateY(-1px); }
+    .btn-danger { background: transparent; border: 1px solid rgba(244,63,94,0.4);
+      color: var(--accent2); padding: 0.35rem 0.85rem; font-size: 0.82rem; }
+    .btn-danger:hover { background: var(--accent2); color: #fff; }
+    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+    .btn-ghost { background: transparent; color: var(--muted); }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-admin {
+      background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.35);
+      color: #fb7185; padding: 0.35rem 0.85rem; font-size: 0.82rem;
+    }
+    .btn-admin:hover { background: var(--accent2); color: #fff; }
+    /* ── Detect badge ── */
+    .detect-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.6rem; min-height: 28px; }
+    .detect-label { font-size: 0.78rem; color: var(--muted); }
+    #detected-type { font-size: 0.78rem; color: #a5b4fc; font-weight: 600; }
+    /* ── Log console ── */
+    #log-console {
+      background: #0a0f1e; border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem; font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.8rem; height: 300px; overflow-y: auto; margin-top: 1rem;
+    }
+    .log-info    { color: #94a3b8; }
+    .log-success { color: #34d399; }
+    .log-error   { color: #f87171; }
+    .log-done    { color: #818cf8; font-weight: bold; }
+    .log-spacer  { height: 0.5rem; }
+    /* ── Apps grid ── */
+    .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .app-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.2rem 1.4rem; box-shadow: var(--shadow);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .app-card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.3); }
+    .app-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .app-type-badge {
+      display: inline-block; background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35); color: #a5b4fc;
+      font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem;
+      border-radius: 20px; text-transform: uppercase;
+    }
+    .app-card-meta { font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0.75rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+    .status-dot.running { background: var(--accent3); box-shadow: 0 0 6px rgba(16,185,129,0.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.5;} }
+    .app-card-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.85rem; }
+    .url-link { font-size: 0.75rem; color: var(--accent3); word-break: break-all; text-decoration: none; display: block; margin-top: 0.4rem; }
+    .url-link:hover { text-decoration: underline; }
+    .empty-apps { text-align: center; color: var(--muted); padding: 3rem; font-size: 0.95rem; }
+    /* ── Mini stats ── */
+    .user-stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .mini-stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.9rem 1.2rem; flex: 1; min-width: 110px;
+      box-shadow: var(--shadow); text-align: center;
+    }
+    .mini-stat-val { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+    .mini-stat-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 0.15rem; }
+    /* ── Runner log ── */
+    #runner-log {
+      background: #0a0f1e; border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem; font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.8rem; height: 200px; overflow-y: auto; margin-top: 1rem;
+    }
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; background: var(--accent); color: #fff;
+      padding: 0.75rem 1.4rem; border-radius: 10px; font-size: 0.9rem;
+      animation: slideUp 0.3s ease; z-index: 9999; box-shadow: 0 6px 24px rgba(99,102,241,0.5);
+    }
+    .toast.error   { background: var(--accent2); }
+    .toast.success { background: var(--accent3); }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;} }
+    /* ── Spinner ── */
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── Rename modal ── */
+    #rename-modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+    #rename-modal.open { display: flex; }
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 2rem; width: 100%; max-width: 400px; box-shadow: var(--shadow);
+    }
+    .modal-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    @media (max-width: 600px) {
+      .apps-grid { grid-template-columns: 1fr; }
+      nav { padding: 0 1rem; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">⚡ IdeaForge</span>
+  <button class="nav-link active" onclick="showPage('generate', this)">Generate</button>
+  <button class="nav-link"        onclick="showPage('apps',     this)">My Apps</button>
+  <button class="nav-link"        onclick="showPage('runner',   this)">Runner</button>
+  <div class="nav-right">
+    {% if is_admin %}
+    <button class="btn btn-admin btn-sm" onclick="location.href='/admin'">🛡 Admin</button>
+    {% endif %}
+    <span class="nav-user">👤 {{ username }}</span>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+  </div>
+</nav>
+
+<!-- ══════════ GENERATE ══════════ -->
+<div id="page-generate" class="page active">
+  <div class="card">
+    <h1>Generate an App</h1>
+    <p class="sub">Describe your idea — IdeaForge builds the full stack automatically.</p>
+    <div class="form-group">
+      <label>App Name</label>
+      <input id="app-name" type="text" placeholder="e.g. my_expense_tracker" />
+    </div>
+    <div class="form-group">
+      <label>App Idea</label>
+      <textarea id="app-idea" placeholder="e.g. Track gym workouts with sets, reps and weight"></textarea>
+    </div>
+    <div class="detect-row">
+      <span class="detect-label">Detected type:</span>
+      <span id="detected-type">—</span>
+    </div>
+    <div style="margin-top:1.2rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-primary" id="gen-btn" onclick="startGenerate()">⚡ Generate App</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearLog()">Clear Log</button>
+    </div>
+    <div id="log-console"></div>
+  </div>
+</div>
+
+<!-- ══════════ MY APPS ══════════ -->
+<div id="page-apps" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.75rem">
+    <div>
+      <h1>My Apps</h1>
+      <p class="sub" style="margin:0">Your generated apps — run, manage, export.</p>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="loadApps()">↺ Refresh</button>
+  </div>
+  <div id="user-stats" class="user-stats"></div>
+  <div id="apps-grid" class="apps-grid">
+    <p class="empty-apps"><span class="spinner"></span> Loading…</p>
+  </div>
+</div>
+
+<!-- ══════════ RUNNER ══════════ -->
+<div id="page-runner" class="page">
+  <div class="card">
+    <h2>App Runner</h2>
+    <p class="sub">Run and monitor your generated apps.</p>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+      <select id="runner-select" style="flex:1;min-width:180px">
+        <option value="">— Select an app —</option>
+      </select>
+      <button class="btn btn-success" onclick="runSelected()">▶ Run</button>
+      <button class="btn btn-danger"  onclick="stopSelected()">■ Stop</button>
+      <button class="btn btn-ghost btn-sm" onclick="refreshLogs()">↺ Logs</button>
+    </div>
+    <div id="runner-status" style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem"></div>
+    <div id="runner-log"></div>
+  </div>
+</div>
+
+<!-- ══════════ RENAME MODAL ══════════ -->
+<div id="rename-modal">
+  <div class="modal-box">
+    <h3>Rename App</h3>
+    <input id="rename-input" type="text" placeholder="New app name" style="margin-bottom:0" />
+    <input type="hidden" id="rename-target" />
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitRename()">Rename</button>
+      <button class="btn btn-ghost"   onclick="closeRename()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'apps')   loadApps();
+  if (name === 'runner') loadRunnerApps();
+}
+
+// ── Utilities ───────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function toast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+function debounce(fn, delay) {
+  let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), delay); };
+}
+
+async function doLogout() {
+  await fetch('/auth/logout', { method: 'POST' });
+  location.href = '/login';
+}
+
+// ── Detect type on input ────────────────────────────────────────────────────
+document.getElementById('app-idea').addEventListener('input', debounce(async () => {
+  const v = document.getElementById('app-idea').value.trim();
+  if (!v) { document.getElementById('detected-type').textContent = '—'; return; }
+  try {
+    const r = await fetch('/api/detect?idea=' + encodeURIComponent(v));
+    const d = await r.json();
+    document.getElementById('detected-type').textContent = d.app_type || '—';
+  } catch {}
+}, 400));
+
+// ── Generate ────────────────────────────────────────────────────────────────
+const logEl = document.getElementById('log-console');
+function appendLog(text, level) {
+  const div = document.createElement('div');
+  div.className = 'log-' + (level || 'info');
+  if (level === 'spacer') div.style.height = '0.5rem';
+  else div.textContent = text;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog() { logEl.innerHTML = ''; }
+
+async function startGenerate() {
+  const name = document.getElementById('app-name').value.trim();
+  const idea = document.getElementById('app-idea').value.trim();
+  if (!name) { toast('Please enter an app name', 'error'); return; }
+  if (!idea) { toast('Please describe your app idea', 'error'); return; }
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating…';
+  clearLog();
+  appendLog('Starting: ' + name, 'info');
+  try {
+    const res = await fetch('/api/generate/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ app_name: name, app_idea: idea }),
+    });
+    if (!res.ok) {
+      appendLog('ERROR: ' + await res.text(), 'error');
+      btn.disabled = false; btn.textContent = '⚡ Generate App'; return;
+    }
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        if (!part.startsWith('data:')) continue;
+        const raw = part.slice(5).trim();
+        if (raw === '[DONE]') {
+          appendLog('', 'spacer');
+          appendLog('✅ Done! Go to My Apps to run.', 'done');
+          btn.disabled = false; btn.textContent = '⚡ Generate App';
+          toast('App generated!', 'success');
+          return;
+        }
+        try {
+          const msg = JSON.parse(raw);
+          appendLog(msg.message || raw, msg.level || 'info');
+        } catch { appendLog(raw, 'info'); }
+      }
+    }
+  } catch (e) { appendLog('ERROR: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = '⚡ Generate App';
+}
+
+// ── My Apps ─────────────────────────────────────────────────────────────────
+async function loadApps() {
+  const grid = document.getElementById('apps-grid');
+  grid.innerHTML = '<p class="empty-apps"><span class="spinner"></span> Loading…</p>';
+
+  // User stats strip
+  try {
+    const sr = await fetch('/api/user/stats');
+    if (sr.ok) {
+      const s = await sr.json();
+      document.getElementById('user-stats').innerHTML = `
+        <div class="mini-stat"><div class="mini-stat-val">${s.total_apps}</div><div class="mini-stat-label">My Apps</div></div>
+        <div class="mini-stat"><div class="mini-stat-val">${s.total_runs}</div><div class="mini-stat-label">Total Runs</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" style="font-size:0.9rem;color:var(--muted)">${s.last_login || '—'}</div><div class="mini-stat-label">Last Login</div></div>
+      `;
+    }
+  } catch {}
+
+  try {
+    const res  = await fetch('/api/apps');
+    const apps = await res.json();
+    if (!apps.length) {
+      grid.innerHTML = '<p class="empty-apps">🚀 No apps yet — generate your first one above!</p>';
+      return;
+    }
+    grid.innerHTML = apps.map(app => `
+      <div class="app-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+          <div>
+            <div class="app-card-title">${esc(app.display)}</div>
+            <span class="app-type-badge">${esc(app.app_type)}</span>
+          </div>
+          <span class="status-dot ${app.running ? 'running' : ''}"
+            title="${app.running ? 'Running' : 'Stopped'}"></span>
+        </div>
+        <div class="app-card-meta">
+          <span>🕐 ${esc(app.created_at)}</span>
+          <span>🔌 Port ${app.port || '—'}</span>
+          <span>▶ ${app.run_count || 0} runs</span>
+        </div>
+        ${app.url ? `<a class="url-link" href="${esc(app.url)}" target="_blank">🔗 ${esc(app.url)}</a>` : ''}
+        <div class="app-card-actions">
+          ${app.running
+            ? `<button class="btn btn-danger btn-sm" onclick="stopApp('${esc(app.name)}')">■ Stop</button>`
+            : `<button class="btn btn-success btn-sm" onclick="runApp('${esc(app.name)}')">▶ Run</button>`
+          }
+          <button class="btn btn-secondary btn-sm" onclick="openRename('${esc(app.name)}')">✏️ Rename</button>
+          <button class="btn btn-danger btn-sm"   onclick="deleteApp('${esc(app.name)}')">🗑 Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = `<p class="empty-apps">Error: ${esc(e.message)}</p>`;
+  }
+}
+
+async function runApp(name) {
+  toast('Starting ' + name + '…');
+  const res = await fetch('/api/run/' + name, { method: 'POST' });
+  const d   = await res.json();
+  toast(d.message || '', d.status === 'running' ? 'success' : 'error');
+  setTimeout(loadApps, 1200);
+}
+async function stopApp(name) {
+  await fetch('/api/stop/' + name, { method: 'POST' });
+  toast(name + ' stopped');
+  setTimeout(loadApps, 600);
+}
+async function deleteApp(name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  const res = await fetch('/api/delete/' + name, { method: 'DELETE' });
+  const d   = await res.json();
+  toast(d.message || 'Deleted', d.status === 'deleted' ? 'success' : 'error');
+  loadApps();
+}
+
+// Rename
+function openRename(name) {
+  document.getElementById('rename-target').value = name;
+  document.getElementById('rename-input').value  = name;
+  document.getElementById('rename-modal').classList.add('open');
+}
+function closeRename() { document.getElementById('rename-modal').classList.remove('open'); }
+async function submitRename() {
+  const name    = document.getElementById('rename-target').value;
+  const newName = document.getElementById('rename-input').value.trim();
+  if (!newName) { toast('Enter a name', 'error'); return; }
+  const res = await fetch('/api/rename/' + name, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ new_name: newName }),
+  });
+  const d = await res.json();
+  closeRename();
+  toast(d.message || 'Renamed', d.status === 'renamed' ? 'success' : 'error');
+  loadApps();
+}
+document.getElementById('rename-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeRename();
+});
+
+// ── Runner ───────────────────────────────────────────────────────────────────
+async function loadRunnerApps() {
+  const sel  = document.getElementById('runner-select');
+  const prev = sel.value;
+  try {
+    const res  = await fetch('/api/apps');
+    const apps = await res.json();
+    sel.innerHTML = '<option value="">— Select an app —</option>' +
+      apps.map(a => `<option value="${esc(a.name)}" ${a.name === prev ? 'selected' : ''}>${esc(a.display)} (port ${a.port || '—'})</option>`).join('');
+  } catch {}
+}
+
+async function runSelected() {
+  const name = document.getElementById('runner-select').value;
+  if (!name) { toast('Select an app first', 'error'); return; }
+  document.getElementById('runner-status').textContent = 'Starting…';
+  const res = await fetch('/api/run/' + name, { method: 'POST' });
+  const d   = await res.json();
+  let html = esc(d.message || '');
+  if (d.url) html += ` — <a href="${d.url}" target="_blank" style="color:var(--accent3)">${d.url}</a>`;
+  document.getElementById('runner-status').innerHTML = html;
+  toast(d.message, d.status === 'running' ? 'success' : 'error');
+  refreshLogs();
+}
+async function stopSelected() {
+  const name = document.getElementById('runner-select').value;
+  if (!name) { toast('Select an app first', 'error'); return; }
+  await fetch('/api/stop/' + name, { method: 'POST' });
+  document.getElementById('runner-status').textContent = name + ' stopped.';
+  toast(name + ' stopped');
+}
+async function refreshLogs() {
+  const name = document.getElementById('runner-select').value;
+  if (!name) return;
+  try {
+    const res  = await fetch('/api/logs/' + name);
+    const logs = await res.json();
+    const el   = document.getElementById('runner-log');
+    el.innerHTML = logs.map(l => `<div style="color:var(--muted)">${esc(l)}</div>`).join('');
+    el.scrollTop = el.scrollHeight;
+  } catch {}
+}
+</script>
+</body>
+</html>

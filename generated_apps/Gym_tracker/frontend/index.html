@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Tracker</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>&#9889; Gym Tracker</h1>
+      <p class="tagline">Create a gym workout tracker application.
+
+STRICT REQUIREMENTS:
+
+The app must include the following fields:
+- exerc</p>
+    </header>
+
+    <!-- Analytics bar -->
+    <div class="analytics" id="analytics">
+      <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total Items</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-numeric">0</div><div class="stat-label" id="stat-numeric-label">Total Value</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-bool">0</div><div class="stat-label" id="stat-bool-label">Completed</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card"><canvas id="barChart"></canvas></div>
+      <div class="chart-card"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <section class="card">
+      <h2>Add New Item</h2>
+      <div class="form-group">
+        <label class="field-label" for="inp-exercise">Exercise</label>
+        <input type="text" id="inp-exercise" name="exercise" placeholder="Exercise" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-sets">Sets</label>
+        <input type="number" step="1" id="inp-sets" name="sets" placeholder="Sets" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-reps">Reps</label>
+        <input type="number" step="1" id="inp-reps" name="reps" placeholder="Reps" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-weight">Weight</label>
+        <input type="number" step="0.01" id="inp-weight" name="weight" placeholder="Weight" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-workout_date">Workout Date</label>
+        <input type="date" id="inp-workout_date" name="workout_date" />
+      </div>
+      <button class="btn btn-primary" onclick="createItem()">+ Add Item</button>
+    </section>
+
+    <section class="card">
+      <div class="list-header">
+        <h2>All Items</h2>
+        <button class="btn btn-secondary" onclick="fetchItems()">&#8635; Refresh</button>
+      </div>
+      <div id="loading" class="loading hidden"><span class="spinner"></span> Loading...</div>
+      <div id="items-list"><p class="empty">&#128218; No items yet — add your first one above!</p></div>
+    </section>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label class="field-label" for="edit-exercise">Exercise</label>
+        <input type="text" id="edit-exercise" name="exercise" placeholder="Exercise" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-sets">Sets</label>
+        <input type="number" step="1" id="edit-sets" name="sets" placeholder="Sets" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-reps">Reps</label>
+        <input type="number" step="1" id="edit-reps" name="reps" placeholder="Reps" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-weight">Weight</label>
+        <input type="number" step="0.01" id="edit-weight" name="weight" placeholder="Weight" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-workout_date">Workout Date</label>
+        <input type="date" id="edit-workout_date" name="workout_date" />
+      </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost"   onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>

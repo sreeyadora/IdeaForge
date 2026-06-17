@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Planner</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>&#9889; Study Planner</h1>
+          <p class="tagline">Build a study planner app.
+
+The app should manage study sessions with fields:
+- subject (string)
+- topic (string)
+- dura</p>
+          <span class="app-type-badge">&#127381; Event Planner</span>
+        </div>
+        <div class="header-auth">
+          <span class="auth-user" id="header-user"></span>
+          <button class="btn btn-ghost btn-sm" onclick="doLogout()">&#x2192; Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Analytics bar (5 cards) -->
+    <div class="analytics" id="analytics">
+      <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total Items</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-numeric">0</div><div class="stat-label" id="stat-numeric-label">Total</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-avg">0</div><div class="stat-label" id="stat-avg-label">Average</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-bool">—</div><div class="stat-label" id="stat-bool-label">Completed</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-top" style="font-size:1.1rem">—</div><div class="stat-label" id="stat-top-label">Top Category</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card"><canvas id="barChart"></canvas></div>
+      <div class="chart-card"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <!-- Add form -->
+    <section class="card">
+      <h2>Add New Item</h2>
+      <div class="form-group">
+        <label class="field-label" for="inp-service_name">Service Name</label>
+        <input type="text" id="inp-service_name" name="service_name" placeholder="Service Name" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-cost">Cost</label>
+        <input type="number" step="0.01" id="inp-cost" name="cost" placeholder="Cost" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-billing_cycle">Billing Cycle</label>
+        <input type="text" id="inp-billing_cycle" name="billing_cycle" placeholder="Billing Cycle" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-next_payment_date">Next Payment Date</label>
+        <input type="date" id="inp-next_payment_date" name="next_payment_date" />
+      </div>
+      <div class="form-group">
+        <label class="checkbox-wrap" for="inp-active"><input type="checkbox" id="inp-active" name="active" /> Active</label>
+      </div>
+      <button class="btn btn-primary" onclick="createItem()">+ Add Item</button>
+    </section>
+
+    <!-- List + controls -->
+    <section class="card">
+      <div class="list-header">
+        <h2>All Items</h2>
+        <div class="list-controls">
+          <input type="text" id="search-input" placeholder="&#128269; Search..." oninput="applyFilters()" style="width:180px;padding:0.45rem 0.8rem;font-size:0.85rem" />
+          <select id="sort-select" onchange="applyFilters()">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="fetchItems()">&#8635; Refresh</button>
+          <button class="btn btn-export" onclick="exportData('csv')">&#8595; CSV</button>
+          <button class="btn btn-export" onclick="exportData('json')">&#8595; JSON</button>
+        </div>
+      </div>
+      <div id="loading" class="loading hidden"><span class="spinner"></span> Loading...</div>
+      <div id="items-list"><p class="empty">&#128218; No items yet — add your first one above!</p></div>
+    </section>
+
+    <!-- Edit modal -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label class="field-label" for="edit-service_name">Service Name</label>
+        <input type="text" id="edit-service_name" name="service_name" placeholder="Service Name" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-cost">Cost</label>
+        <input type="number" step="0.01" id="edit-cost" name="cost" placeholder="Cost" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-billing_cycle">Billing Cycle</label>
+        <input type="text" id="edit-billing_cycle" name="billing_cycle" placeholder="Billing Cycle" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-next_payment_date">Next Payment Date</label>
+        <input type="date" id="edit-next_payment_date" name="next_payment_date" />
+      </div>
+      <div class="form-group">
+        <label class="checkbox-wrap" for="edit-active"><input type="checkbox" id="edit-active" name="active" /> Active</label>
+      </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost"   onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Planner Ai</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>&#9889; Study Planner Ai</h1>
+      <p class="tagline">Create an AI-powered Study Planner App.
+
+Features:
+- User enters subjects and available study hours
+- App generates </p>
+    </header>
+
+    <!-- Analytics bar -->
+    <div class="analytics" id="analytics">
+      <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total Items</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-numeric">0</div><div class="stat-label" id="stat-numeric-label">Total Value</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-bool">0</div><div class="stat-label" id="stat-bool-label">Completed</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card"><canvas id="barChart"></canvas></div>
+      <div class="chart-card"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <section class="card">
+      <h2>Add New Item</h2>
+      <div class="form-group">
+        <label class="field-label" for="inp-subject">Subject</label>
+        <input type="text" id="inp-subject" name="subject" placeholder="Subject" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-topic">Topic</label>
+        <input type="text" id="inp-topic" name="topic" placeholder="Topic" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-duration_minutes">Duration Minutes</label>
+        <input type="number" step="1" id="inp-duration_minutes" name="duration_minutes" placeholder="Duration Minutes" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-study_date">Study Date</label>
+        <input type="date" id="inp-study_date" name="study_date" />
+      </div>
+      <div class="form-group">
+        <label class="checkbox-wrap" for="inp-completed"><input type="checkbox" id="inp-completed" name="completed" /> Completed</label>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-notes">Notes</label>
+        <textarea id="inp-notes" name="notes" placeholder="Notes"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="createItem()">+ Add Item</button>
+    </section>
+
+    <section class="card">
+      <div class="list-header">
+        <h2>All Items</h2>
+        <button class="btn btn-secondary" onclick="fetchItems()">&#8635; Refresh</button>
+      </div>
+      <div id="loading" class="loading hidden"><span class="spinner"></span> Loading...</div>
+      <div id="items-list"><p class="empty">&#128218; No items yet — add your first one above!</p></div>
+    </section>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label class="field-label" for="edit-subject">Subject</label>
+        <input type="text" id="edit-subject" name="subject" placeholder="Subject" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-topic">Topic</label>
+        <input type="text" id="edit-topic" name="topic" placeholder="Topic" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-duration_minutes">Duration Minutes</label>
+        <input type="number" step="1" id="edit-duration_minutes" name="duration_minutes" placeholder="Duration Minutes" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-study_date">Study Date</label>
+        <input type="date" id="edit-study_date" name="study_date" />
+      </div>
+      <div class="form-group">
+        <label class="checkbox-wrap" for="edit-completed"><input type="checkbox" id="edit-completed" name="completed" /> Completed</label>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-notes">Notes</label>
+        <textarea id="edit-notes" name="notes" placeholder="Notes"></textarea>
+      </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost"   onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>

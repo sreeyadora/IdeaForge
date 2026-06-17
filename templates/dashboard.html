@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IdeaForge — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060912;
+      --surface: #0d1117;
+      --surface2: #161b22;
+      --surface3: #1c2333;
+      --border: rgba(99,102,241,0.15);
+      --border2: rgba(255,255,255,0.06);
+      --accent: #6366f1;
+      --accent-glow: rgba(99,102,241,0.3);
+      --accent2: #a78bfa;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #f0883e;
+      --text: #e6edf3;
+      --muted: #8b949e;
+    }
+    body {
+      background: var(--bg);
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .sidebar-logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebar-logo p {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .nav-item.active { color: var(--accent2); background: rgba(99,102,241,0.08); border-left-color: var(--accent); }
+    .nav-item span.icon { font-size: 1rem; width: 20px; text-align: center; }
+    .nav-sep { height: 1px; background: var(--border2); margin: 0.75rem 1.5rem; }
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 0 1.5rem;
+    }
+    .user-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .user-badge .name { font-size: 0.88rem; font-weight: 600; }
+    .user-badge .role { font-size: 0.72rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .btn-logout {
+      width: 100%;
+      padding: 0.55rem;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-header h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .page-header p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border); }
+    .stat-val { font-size: 2rem; font-weight: 700; color: var(--accent2); }
+    .stat-label { font-size: 0.73rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 0.25rem; }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Generate form */
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+    input::placeholder, textarea::placeholder { color: rgba(139,148,158,0.4); }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+    }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.5); }
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Console log */
+    .console {
+      background: #010409;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      min-height: 120px;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+    }
+    .console.show { display: block; }
+    .log-line { padding: 2px 0; line-height: 1.5; }
+    .log-info { color: #58a6ff; }
+    .log-success { color: var(--success); }
+    .log-error { color: var(--danger); }
+    .log-done { color: var(--accent2); font-weight: 600; }
+    .log-spacer { height: 8px; }
+
+    /* App cards grid */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: border-color 0.2s, transform 0.15s;
+      animation: fadeUp 0.3s ease;
+    }
+    .app-card:hover { border-color: var(--border); transform: translateY(-2px); }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+    .app-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+    .app-name { font-size: 1.05rem; font-weight: 600; }
+    .app-type-badge {
+      font-size: 0.68rem;
+      padding: 0.2rem 0.6rem;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: var(--accent2);
+      border-radius: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .app-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.6;
+    }
+    .running-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-right: 5px;
+      box-shadow: 0 0 6px var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .app-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn-sm {
+      padding: 0.4rem 0.9rem;
+      border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.run { border-color: rgba(63,185,80,0.35); color: var(--success); }
+    .btn-sm.run:hover { background: rgba(63,185,80,0.1); }
+    .btn-sm.stop { border-color: rgba(240,136,62,0.35); color: var(--warning); }
+    .btn-sm.stop:hover { background: rgba(240,136,62,0.1); }
+    .btn-sm.danger { border-color: rgba(248,81,73,0.3); color: var(--danger); }
+    .btn-sm.danger:hover { background: rgba(248,81,73,0.1); }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .big-icon { font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.5; }
+    .empty-state p { font-size: 0.9rem; }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.75rem 1.4rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      z-index: 9999;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+    }
+    .toast.success { background: var(--success); box-shadow: 0 6px 20px rgba(63,185,80,0.4); }
+    .toast.error { background: var(--danger); box-shadow: 0 6px 20px rgba(248,81,73,0.4); }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>⚡ IdeaForge</h1>
+      <p>// app generator</p>
+    </div>
+
+    <button class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+      <span class="icon">🏠</span> Dashboard
+    </button>
+    <button class="nav-item" id="nav-generate" onclick="showPage('generate')">
+      <span class="icon">✨</span> Generate App
+    </button>
+    <button class="nav-item" id="nav-apps" onclick="showPage('apps')">
+      <span class="icon">📦</span> My Apps
+    </button>
+
+    <div class="nav-sep"></div>
+
+    <div class="sidebar-bottom">
+      <div class="user-badge">
+        <div class="name">👤 {{ username }}</div>
+        <div class="role">user</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">→ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Dashboard page -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h2>Welcome back, {{ username }} 👋</h2>
+        <p>Your app generation workspace</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="dash-total-apps">—</div>
+          <div class="stat-label">Total Apps</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="dash-total-runs">—</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="dash-last-login">—</div>
+          <div class="stat-label">Last Login</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Quick Generate</h3>
+        <div class="form-group">
+          <label class="form-label">App Name</label>
+          <input type="text" id="quick-name" placeholder="e.g. MyTaskManager" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Describe your app idea</label>
+          <textarea id="quick-idea" rows="3" placeholder="e.g. A task manager with priorities, due dates and completion tracking"></textarea>
+        </div>
+        <button class="btn-generate" onclick="startGenerate()">⚡ Generate App</button>
+        <div class="console" id="quick-console" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+
+    <!-- Generate page -->
+    <div class="page" id="page-generate">
+      <div class="page-header">
+        <h2>✨ Generate New App</h2>
+        <p>Describe your idea — we'll build the full stack</p>
+      </div>
+      <div class="card">
+        <h3>App Configuration</h3>
+        <div class="form-group">
+          <label class="form-label">App Name</label>
+          <input type="text" id="gen-name" placeholder="e.g. GymTracker, ExpenseLog, RecipeBook" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Describe Your App</label>
+          <textarea id="gen-idea" rows="4" placeholder="e.g. A workout tracker with exercise name, sets, reps, weight and workout date. Show progress over time."></textarea>
+        </div>
+        <button class="btn-generate" id="gen-btn" onclick="startGenerateFull()">⚡ Generate Full-Stack App</button>
+        <div class="console" id="gen-console" style="margin-top:1.5rem;"></div>
+      </div>
+    </div>
+
+    <!-- My Apps page -->
+    <div class="page" id="page-apps">
+      <div class="page-header">
+        <h2>📦 My Apps</h2>
+        <p>Your generated applications</p>
+      </div>
+      <div class="card">
+        <h3>All Apps <span id="app-count" style="color:var(--muted);font-weight:400"></span></h3>
+        <div id="apps-container">
+          <div class="empty-state">
+            <span class="big-icon">📭</span>
+            <p>Loading your apps…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentPage = 'dashboard';
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.getElementById('nav-' + page).classList.add('active');
+      currentPage = page;
+      if (page === 'apps') loadApps();
+      if (page === 'dashboard') loadStats();
+    }
+
+    // ── URL routing ──
+    const pathMap = { '/generate': 'generate', '/apps': 'apps', '/dashboard': 'dashboard' };
+    const initPage = pathMap[window.location.pathname] || 'dashboard';
+    showPage(initPage);
+
+    // ── Stats ──
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/user/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('dash-total-apps').textContent = data.total_apps;
+        document.getElementById('dash-total-runs').textContent = data.total_runs;
+        document.getElementById('dash-last-login').textContent = data.last_login ? data.last_login.split(' ')[0] : '—';
+      } catch(e) {}
+    }
+
+    // ── Apps ──
+    async function loadApps() {
+      const container = document.getElementById('apps-container');
+      container.innerHTML = '<div class="empty-state"><span class="big-icon">⏳</span><p>Loading…</p></div>';
+      try {
+        const res = await fetch('/api/apps');
+        if (!res.ok) { container.innerHTML = '<div class="empty-state"><p>Failed to load apps</p></div>'; return; }
+        const apps = await res.json();
+        document.getElementById('app-count').textContent = `(${apps.length})`;
+        if (!apps.length) {
+          container.innerHTML = '<div class="empty-state"><span class="big-icon">📭</span><p>No apps yet. Generate your first one!</p></div>';
+          return;
+        }
+        container.innerHTML = '<div class="apps-grid">' + apps.map(renderAppCard).join('') + '</div>';
+      } catch(e) { container.innerHTML = '<div class="empty-state"><p>Error loading apps: ' + e.message + '</p></div>'; }
+    }
+
+    function renderAppCard(app) {
+      const runningBadge = app.running
+        ? `<span><span class="running-dot"></span>Running on :${app.port}</span>`
+        : `<span>Port: ${app.port || '—'}</span>`;
+      return `<div class="app-card" id="app-card-${app.name}">
+        <div class="app-card-header">
+          <span class="app-name">${escHtml(app.display || app.name)}</span>
+          <span class="app-type-badge">${escHtml(app.app_type)}</span>
+        </div>
+        <div class="app-meta">
+          ${runningBadge}<br/>
+          Runs: ${app.run_count || 0} &nbsp;|&nbsp; Created: ${app.created_at || '—'}
+        </div>
+        <div class="app-actions">
+          ${app.running
+            ? `<button class="btn-sm stop" onclick="stopApp('${app.name}')">⏹ Stop</button>
+               <a href="${app.url}" target="_blank"><button class="btn-sm run">↗ Open</button></a>`
+            : `<button class="btn-sm run" onclick="runApp('${app.name}')">▶ Run</button>`
+          }
+          <button class="btn-sm danger" onclick="deleteApp('${app.name}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }
+
+    function escHtml(str) {
+      return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function runApp(name) {
+      showToast('Starting ' + name + '…');
+      try {
+        const res = await fetch('/api/run/' + name, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) { showToast('App running!', 'success'); loadApps(); }
+        else { showToast(data.detail || 'Failed to start', 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    async function stopApp(name) {
+      try {
+        const res = await fetch('/api/stop/' + name, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) { showToast('App stopped', 'success'); loadApps(); }
+        else { showToast(data.detail || 'Failed to stop', 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    async function deleteApp(name) {
+      if (!confirm('Delete app "' + name + '"? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/delete/' + name, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) { showToast('App deleted', 'success'); loadApps(); }
+        else { showToast(data.detail || 'Failed to delete', 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    // ── Generate ──
+    function appendLog(consoleEl, msg, level) {
+      const div = document.createElement('div');
+      div.className = 'log-line log-' + (level || 'info');
+      if (level === 'spacer') { div.className = 'log-spacer'; }
+      else { div.textContent = msg; }
+      consoleEl.appendChild(div);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    async function startGenerate() {
+      const name = document.getElementById('quick-name').value.trim();
+      const idea = document.getElementById('quick-idea').value.trim();
+      if (!name || !idea) { showToast('Please fill app name and idea', 'error'); return; }
+      await runGenerateStream(name, idea, document.getElementById('quick-console'));
+    }
+
+    async function startGenerateFull() {
+      const name = document.getElementById('gen-name').value.trim();
+      const idea = document.getElementById('gen-idea').value.trim();
+      if (!name || !idea) { showToast('Please fill app name and idea', 'error'); return; }
+      const btn = document.getElementById('gen-btn');
+      btn.disabled = true;
+      await runGenerateStream(name, idea, document.getElementById('gen-console'));
+      btn.disabled = false;
+    }
+
+    async function runGenerateStream(appName, appIdea, consoleEl) {
+      consoleEl.innerHTML = '';
+      consoleEl.classList.add('show');
+      try {
+        const res = await fetch('/api/generate/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ app_name: appName, app_idea: appIdea }),
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          appendLog(consoleEl, 'Error: ' + (d.detail || 'Generation failed'), 'error');
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const payload = line.slice(6).trim();
+            if (payload === '[DONE]') {
+              appendLog(consoleEl, '─── Generation complete ───', 'success');
+              showToast('App generated!', 'success');
+              if (currentPage === 'apps') loadApps();
+              if (currentPage === 'dashboard') loadStats();
+              return;
+            }
+            try {
+              const msg = JSON.parse(payload);
+              appendLog(consoleEl, msg.message, msg.level);
+            } catch(e) {}
+          }
+        }
+      } catch(e) {
+        appendLog(consoleEl, 'Connection error: ' + e.message, 'error');
+      }
+    }
+
+    // ── Logout ──
+    async function doLogout() {
+      await fetch('/auth/logout', { method: 'POST' });
+      window.location.href = '/login';
+    }
+
+    // ── Toast ──
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (type ? ' ' + type : '');
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // Init
+    loadStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Runner — IdeaForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <nav class="navbar">
+    <div class="logo"><span class="logo-icon">⚡</span> IdeaForge</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/runner" class="nav-link active">My Apps</a>
+    </div>
+  </nav>
+
+  <main class="runner-main">
+    <div class="runner-header">
+      <h1 class="page-title">My <span class="gradient-text">Apps</span></h1>
+      <p class="page-sub">Manage and launch your generated applications.</p>
+    </div>
+
+    {% if apps %}
+    <div class="apps-grid" id="apps-grid">
+      {% for app in apps %}
+      <div class="app-card" id="card-{{ app.name }}">
+        <div class="app-card-top">
+          <div class="app-icon">{{ app.name[0].upper() }}</div>
+          <div class="app-meta">
+            <h3 class="app-name">{{ app.name.replace("_", " ").title() }}</h3>
+            <span class="app-status-badge {{ app.status }}">{{ app.status }}</span>
+          </div>
+        </div>
+        <p class="app-idea">{{ app.idea[:120] }}{% if app.idea|length > 120 %}…{% endif %}</p>
+        <p class="app-date">Created: {{ app.created_at[:10] }}</p>
+
+        <div class="status-indicators" id="status-{{ app.name }}">
+          <span class="indicator" id="be-{{ app.name }}">● Backend</span>
+          <span class="indicator" id="fe-{{ app.name }}">● Frontend</span>
+        </div>
+
+        <div class="app-actions">
+          <button class="forge-btn small" onclick="openApp('{{ app.name }}')">
+            <span class="btn-icon">▶</span> Open App
+          </button>
+          <button class="forge-btn small forge-btn-ghost" onclick="viewFiles('{{ app.name }}')">
+            <span class="btn-icon">📁</span> Files
+          </button>
+          <button class="forge-btn small forge-btn-stop hidden" id="stop-{{ app.name }}" onclick="stopApp('{{ app.name }}')">
+            <span class="btn-icon">■</span> Stop
+          </button>
+        </div>
+
+        <div class="log-mini hidden" id="logs-{{ app.name }}"></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔨</div>
+      <h2>No apps yet</h2>
+      <p>Go to the Dashboard and generate your first app!</p>
+      <a href="/" class="forge-btn" style="margin-top:1.5rem;display:inline-flex">
+        <span class="btn-icon">⚡</span> Build an App
+      </a>
+    </div>
+    {% endif %}
+  </main>
+
+  <!-- Files Modal -->
+  <div id="files-modal" class="modal hidden">
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <h3>📁 File Tree — <span id="modal-app-name"></span></h3>
+        <button onclick="closeModal()" class="modal-close">✕</button>
+      </div>
+      <pre class="file-tree" id="file-tree-content"></pre>
+    </div>
+  </div>
+
+  <script>
+    async function openApp(name) {
+      const btn = event.currentTarget;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon spinning">▶</span> Starting...';
+
+      const res = await fetch(`/run/${name}`, { method: "POST" });
+      const data = await res.json();
+
+      addLog(name, data.message);
+
+      if (data.status === "running" || data.status === "already_running") {
+        document.getElementById(`stop-${name}`).classList.remove("hidden");
+        updateStatus(name, true);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-icon">▶</span> Open App';
+    }
+
+    async function stopApp(name) {
+      const res = await fetch(`/stop/${name}`, { method: "POST" });
+      const data = await res.json();
+      addLog(name, data.message);
+      document.getElementById(`stop-${name}`).classList.add("hidden");
+      updateStatus(name, false);
+    }
+
+    async function viewFiles(name) {
+      const res = await fetch(`/files/${name}`);
+      const data = await res.json();
+      document.getElementById("modal-app-name").textContent = name.replace(/_/g, " ");
+      document.getElementById("file-tree-content").textContent = data.tree || "No files found.";
+      document.getElementById("files-modal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("files-modal").classList.add("hidden");
+    }
+
+    function updateStatus(name, running) {
+      const be = document.getElementById(`be-${name}`);
+      const fe = document.getElementById(`fe-${name}`);
+      if (be) be.className = `indicator ${running ? "on" : ""}`;
+      if (fe) fe.className = `indicator ${running ? "on" : ""}`;
+    }
+
+    function addLog(name, msg) {
+      const el = document.getElementById(`logs-${name}`);
+      if (!el) return;
+      el.classList.remove("hidden");
+      const line = document.createElement("div");
+      line.textContent = `› ${msg}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // Poll status every 5s
+    async function pollStatus() {
+      const cards = document.querySelectorAll(".app-card");
+      for (const card of cards) {
+        const name = card.id.replace("card-", "");
+        try {
+          const res = await fetch(`/status/${name}`);
+          const data = await res.json();
+          updateStatus(name, data.running);
+          const stopBtn = document.getElementById(`stop-${name}`);
+          if (stopBtn) {
+            data.running ? stopBtn.classList.remove("hidden") : stopBtn.classList.add("hidden");
+          }
+        } catch(e) {}
+      }
+    }
+
+    setInterval(pollStatus, 5000);
+    pollStatus();
+
+    // Close modal on backdrop click
+    document.getElementById("files-modal").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+  </script>
+</body>
+</html>

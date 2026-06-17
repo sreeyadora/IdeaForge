@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IdeaForge — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060912;
+      --surface: #0d1117;
+      --surface2: #161b22;
+      --border: rgba(255,255,255,0.06);
+      --border-accent: rgba(167,139,250,0.2);
+      --accent: #a78bfa;
+      --accent2: #6366f1;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #f0883e;
+      --text: #e6edf3;
+      --muted: #8b949e;
+    }
+    body {
+      background: var(--bg);
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .sidebar-logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebar-logo .badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 0.65rem;
+      padding: 0.15rem 0.55rem;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.3);
+      color: var(--accent);
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.5rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .nav-item.active { color: var(--accent); background: rgba(167,139,250,0.08); border-left-color: var(--accent); }
+    .nav-sep { height: 1px; background: var(--border); margin: 0.75rem 1.5rem; }
+    .sidebar-bottom { margin-top: auto; padding: 0 1.5rem; }
+    .admin-badge-box {
+      background: rgba(167,139,250,0.08);
+      border: 1px solid var(--border-accent);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .admin-badge-box .name { font-size: 0.8rem; font-weight: 600; color: var(--accent); word-break: break-all; }
+    .admin-badge-box .role { font-size: 0.68rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+    .btn-logout {
+      width: 100%;
+      padding: 0.55rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Main */
+    .main { margin-left: 250px; flex: 1; padding: 2rem; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header { margin-bottom: 2rem; }
+    .page-header h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+    .page-header p { color: var(--muted); font-size: 0.88rem; margin-top: 0.3rem; }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      text-align: center;
+    }
+    .stat-val { font-size: 2.2rem; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 0.3rem; }
+
+    /* Tables */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead th {
+      text-align: left;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.18rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .badge-type {
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.2);
+      color: #818cf8;
+    }
+    .badge-runs {
+      background: rgba(63,185,80,0.1);
+      border: 1px solid rgba(63,185,80,0.2);
+      color: var(--success);
+    }
+    .btn-del {
+      padding: 0.28rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid rgba(248,81,73,0.25);
+      background: transparent;
+      color: var(--danger);
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-del:hover { background: rgba(248,81,73,0.1); }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .empty-row td { color: var(--muted); font-style: italic; text-align: center; padding: 2rem; }
+
+    .refresh-btn {
+      float: right;
+      padding: 0.35rem 0.9rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.15s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--accent2); color: #fff;
+      padding: 0.75rem 1.4rem; border-radius: 10px;
+      font-size: 0.9rem; z-index: 9999;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+    }
+    .toast.error { background: var(--danger); }
+    .toast.success { background: var(--success); }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>⚡ IdeaForge</h1>
+      <div class="badge">Admin Panel</div>
+    </div>
+
+    <button class="nav-item active" id="nav-overview" onclick="showPage('overview')">
+      <span>📊</span> Overview
+    </button>
+    <button class="nav-item" id="nav-users" onclick="showPage('users')">
+      <span>👥</span> Users
+    </button>
+    <button class="nav-item" id="nav-allapps" onclick="showPage('allapps')">
+      <span>📦</span> All Apps
+    </button>
+
+    <div class="nav-sep"></div>
+
+    <div class="sidebar-bottom">
+      <div class="admin-badge-box">
+        <div class="name">🛡️ {{ username }}</div>
+        <div class="role">administrator</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">→ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Overview page -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <h2>📊 Platform Overview</h2>
+        <p>Real-time statistics for IdeaForge</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-users">—</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-apps">—</div>
+          <div class="stat-label">Total Apps</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-runs">—</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Top Users by App Count <button class="refresh-btn" onclick="loadStats()">↻ Refresh</button></h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Apps</th>
+              <th>Last Login</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="top-users-body">
+            <tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--muted)"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Top Apps by Run Count</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>App Name</th>
+              <th>Owner</th>
+              <th>Type</th>
+              <th>Runs</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="top-apps-body">
+            <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted)"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users page -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <h2>👥 All Users</h2>
+        <p>Registered users on this platform</p>
+      </div>
+      <div class="card">
+        <h3>Users <button class="refresh-btn" onclick="loadUsers()">↻ Refresh</button></h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Apps</th>
+              <th>Last Login</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="users-body">
+            <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted)"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- All Apps page -->
+    <div class="page" id="page-allapps">
+      <div class="page-header">
+        <h2>📦 All Apps</h2>
+        <p>Every app generated on this platform</p>
+      </div>
+      <div class="card">
+        <h3>Apps <button class="refresh-btn" onclick="loadAllApps()">↻ Refresh</button></h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Owner</th>
+              <th>Type</th>
+              <th>Runs</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="all-apps-body">
+            <tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--muted)"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.getElementById('nav-' + page).classList.add('active');
+      if (page === 'overview') loadStats();
+      if (page === 'users') loadUsers();
+      if (page === 'allapps') loadAllApps();
+    }
+
+    function esc(str) {
+      return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/admin/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('stat-users').textContent = data.total_users;
+        document.getElementById('stat-apps').textContent = data.total_apps;
+        document.getElementById('stat-runs').textContent = data.total_runs;
+
+        const usersBody = document.getElementById('top-users-body');
+        if (!data.top_users.length) {
+          usersBody.innerHTML = '<tr class="empty-row"><td colspan="4">No users yet</td></tr>';
+        } else {
+          usersBody.innerHTML = data.top_users.map(u => `<tr>
+            <td class="mono">${esc(u.username)}</td>
+            <td><span class="badge badge-runs">${u.apps}</span></td>
+            <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(u.last_login||'—')}</td>
+            <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(u.created_at||'—')}</td>
+          </tr>`).join('');
+        }
+
+        const appsBody = document.getElementById('top-apps-body');
+        if (!data.top_apps.length) {
+          appsBody.innerHTML = '<tr class="empty-row"><td colspan="5">No apps yet</td></tr>';
+        } else {
+          appsBody.innerHTML = data.top_apps.slice(0, 10).map(a => `<tr>
+            <td>${esc(a.name)}</td>
+            <td class="mono" style="color:var(--muted)">${esc(a.owner)}</td>
+            <td><span class="badge badge-type">${esc(a.app_type||'CRUD')}</span></td>
+            <td><span class="badge badge-runs">${a.run_count}</span></td>
+            <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(a.created_at||'—')}</td>
+          </tr>`).join('');
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/admin/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        const body = document.getElementById('users-body');
+        if (!data.all_users.length) {
+          body.innerHTML = '<tr class="empty-row"><td colspan="5">No users registered</td></tr>';
+          return;
+        }
+        body.innerHTML = data.all_users.map(u => `<tr>
+          <td class="mono" style="color:var(--muted)">#${u.id}</td>
+          <td>${esc(u.username)}</td>
+          <td><span class="badge badge-runs">${u.apps} apps</span></td>
+          <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(u.last_login||'Never')}</td>
+          <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(u.created_at||'—')}</td>
+        </tr>`).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadAllApps() {
+      try {
+        const res = await fetch('/admin/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        const body = document.getElementById('all-apps-body');
+        if (!data.top_apps.length) {
+          body.innerHTML = '<tr class="empty-row"><td colspan="6">No apps generated yet</td></tr>';
+          return;
+        }
+        body.innerHTML = data.top_apps.map(a => `<tr>
+          <td>${esc(a.name)}</td>
+          <td class="mono" style="color:var(--muted)">${esc(a.owner)}</td>
+          <td><span class="badge badge-type">${esc(a.app_type||'CRUD')}</span></td>
+          <td><span class="badge badge-runs">${a.run_count}</span></td>
+          <td class="mono" style="color:var(--muted);font-size:0.78rem">${esc(a.created_at||'—')}</td>
+          <td><button class="btn-del" onclick="deleteApp(${a.id}, '${esc(a.name)}')">🗑 Delete</button></td>
+        </tr>`).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    async function deleteApp(appId, appName) {
+      if (!confirm('Delete app "' + appName + '"? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/admin/app/' + appId, { method: 'DELETE' });
+        if (res.ok) { showToast('App deleted', 'success'); loadAllApps(); loadStats(); }
+        else { const d = await res.json(); showToast(d.detail || 'Delete failed', 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    async function doLogout() {
+      await fetch('/auth/logout', { method: 'POST' });
+      window.location.href = '/login';
+    }
+
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (type ? ' ' + type : '');
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // Init
+    loadStats();
+  </script>
+</body>
+</html>

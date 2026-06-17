@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generating {{ app_name }} — IdeaForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <nav class="navbar">
+    <div class="logo"><span class="logo-icon">⚡</span> IdeaForge</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/runner" class="nav-link">My Apps</a>
+    </div>
+  </nav>
+
+  <main class="console-main">
+    <div class="console-header">
+      <div class="console-title-row">
+        <div class="console-pulse" id="pulse-dot"></div>
+        <h1 class="console-title">Generating <span class="gradient-text">{{ app_name }}</span></h1>
+      </div>
+      <p class="console-sub">Watch as your app is forged in real-time...</p>
+    </div>
+
+    <div class="terminal" id="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dots">
+          <span class="td red"></span><span class="td yellow"></span><span class="td green"></span>
+        </div>
+        <span class="terminal-title">ideaforge — generation console</span>
+        <div style="width:54px"></div>
+      </div>
+      <div class="terminal-body" id="log-output">
+        <div class="log-line log-info">
+          <span class="log-prompt">›</span>
+          <span>Connecting to generation engine...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <p class="progress-label" id="progress-label">Initialising...</p>
+
+    <div class="console-actions hidden" id="done-actions">
+      <a href="/runner" class="forge-btn">
+        <span class="btn-icon">🚀</span>
+        <span class="btn-text">Go to App Runner</span>
+        <span class="btn-arrow">→</span>
+      </a>
+      <a href="/" class="forge-btn forge-btn-ghost">
+        <span class="btn-text">Build Another App</span>
+      </a>
+    </div>
+  </main>
+
+  <script>
+    const appName = "{{ app_name }}";
+    const logOutput = document.getElementById("log-output");
+    const progressBar = document.getElementById("progress-bar");
+    const progressLabel = document.getElementById("progress-label");
+    const pulseDot = document.getElementById("pulse-dot");
+
+    const steps = [
+      "Creating project folders",
+      "Generating FastAPI backend",
+      "Writing frontend files",
+      "Initialising SQLite database",
+      "Creating run script",
+      "Finalising",
+    ];
+    let stepIndex = 0;
+
+    function addLog(message, level) {
+      const line = document.createElement("div");
+      line.className = `log-line log-${level}`;
+
+      const icons = { info: "›", success: "✓", error: "✗", done: "★", spacer: "" };
+      const prompt = document.createElement("span");
+      prompt.className = "log-prompt";
+      prompt.textContent = icons[level] || "›";
+
+      const text = document.createElement("span");
+      text.textContent = message;
+
+      line.appendChild(prompt);
+      line.appendChild(text);
+      logOutput.appendChild(line);
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    function updateProgress(pct, label) {
+      progressBar.style.width = pct + "%";
+      progressLabel.textContent = label;
+    }
+
+    const ws = new WebSocket(`ws://${location.host}/ws/generate/${appName}`);
+    const progressMap = {
+      "project folder": 15,
+      "backend": 35,
+      "frontend": 55,
+      "database": 72,
+      "run_app": 88,
+      "successfully": 100,
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === "log") {
+        addLog(data.message, data.level || "info");
+
+        // Update progress bar
+        const msg = data.message.toLowerCase();
+        for (const [key, pct] of Object.entries(progressMap)) {
+          if (msg.includes(key)) {
+            updateProgress(pct, data.message.replace(/^[^\w]+/, ""));
+            break;
+          }
+        }
+      } else if (data.type === "done") {
+        updateProgress(100, "App generated successfully! 🎉");
+        pulseDot.classList.add("done");
+        document.getElementById("done-actions").classList.remove("hidden");
+        addLog("", "spacer");
+        addLog("Ready. Navigate to the Runner to launch your app.", "info");
+      }
+    };
+
+    ws.onerror = () => addLog("WebSocket error — please refresh.", "error");
+    ws.onclose = () => {
+      const last = logOutput.lastElementChild;
+      if (!document.getElementById("done-actions").classList.contains("hidden")) return;
+      addLog("Connection closed.", "info");
+    };
+  </script>
+</body>
+</html>

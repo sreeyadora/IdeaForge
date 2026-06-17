@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Application Tracker</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>&#9889; Job Application Tracker</h1>
+      <p class="tagline">Create a job application tracker where users track company name, role, status, applied date, and notes</p>
+    </header>
+
+    <!-- Analytics bar -->
+    <div class="analytics" id="analytics">
+      <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total Items</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-numeric">0</div><div class="stat-label" id="stat-numeric-label">Total Value</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-bool">0</div><div class="stat-label" id="stat-bool-label">Completed</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card"><canvas id="barChart"></canvas></div>
+      <div class="chart-card"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <section class="card">
+      <h2>Add New Item</h2>
+      <div class="form-group">
+        <label class="field-label" for="inp-title">Title</label>
+        <input type="text" id="inp-title" name="title" placeholder="Title" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-content">Content</label>
+        <textarea id="inp-content" name="content" placeholder="Content"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-created_date">Created Date</label>
+        <input type="date" id="inp-created_date" name="created_date" />
+      </div>
+      <button class="btn btn-primary" onclick="createItem()">+ Add Item</button>
+    </section>
+
+    <section class="card">
+      <div class="list-header">
+        <h2>All Items</h2>
+        <button class="btn btn-secondary" onclick="fetchItems()">&#8635; Refresh</button>
+      </div>
+      <div id="loading" class="loading hidden"><span class="spinner"></span> Loading...</div>
+      <div id="items-list"><p class="empty">&#128218; No items yet — add your first one above!</p></div>
+    </section>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label class="field-label" for="edit-title">Title</label>
+        <input type="text" id="edit-title" name="title" placeholder="Title" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-content">Content</label>
+        <textarea id="edit-content" name="content" placeholder="Content"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-created_date">Created Date</label>
+        <input type="date" id="edit-created_date" name="created_date" />
+      </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost"   onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>

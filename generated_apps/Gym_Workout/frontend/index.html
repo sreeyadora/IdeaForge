@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Workout</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>&#9889; Gym Workout</h1>
+      <p class="tagline">Extract a database schema from the following app idea.
+
+Return ONLY valid JSON in this format:
+{
+  &quot;fields&quot;: [
+    </p>
+    </header>
+
+    <section class="card">
+      <h2>Add New Item</h2>
+      <div class="form-group">
+        <label class="field-label" for="inp-title">Title</label>
+        <input type="text" id="inp-title" name="title" placeholder="Title" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-amount">Amount</label>
+        <input type="number" step="0.01" id="inp-amount" name="amount" placeholder="Amount" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-category">Category</label>
+        <input type="text" id="inp-category" name="category" placeholder="Category" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="inp-date">Date</label>
+        <input type="date" id="inp-date" name="date" />
+      </div>
+      <button class="btn btn-primary" onclick="createItem()">+ Add Item</button>
+    </section>
+
+    <section class="card">
+      <div class="list-header">
+        <h2>All Items</h2>
+        <button class="btn btn-secondary" onclick="fetchItems()">&#8635; Refresh</button>
+      </div>
+      <div id="items-list"><p class="empty">No items yet. Add one above!</p></div>
+    </section>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label class="field-label" for="edit-title">Title</label>
+        <input type="text" id="edit-title" name="title" placeholder="Title" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-amount">Amount</label>
+        <input type="number" step="0.01" id="edit-amount" name="amount" placeholder="Amount" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-category">Category</label>
+        <input type="text" id="edit-category" name="category" placeholder="Category" />
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="edit-date">Date</label>
+        <input type="date" id="edit-date" name="date" />
+      </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost"   onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+</html>

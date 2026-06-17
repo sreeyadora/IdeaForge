@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expence Tracker — Login</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <h1>&#9889; Expence Tracker</h1>
+      <p class="tagline" style="text-align:center;margin-bottom:1.5rem">Sign in to continue</p>
+      <div id="auth-error" class="auth-error hidden"></div>
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label class="field-label">Username</label>
+          <input type="text" id="auth-username" placeholder="Username" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" />
+        </div>
+        <button type="button" class="btn btn-primary" style="width:100%;margin-top:0.5rem" onclick="doLogin()">Sign In</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:0.5rem" onclick="doRegister()">Create Account</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    async function doLogin() {
+      const u = document.getElementById('auth-username').value.trim();
+      const p = document.getElementById('auth-password').value;
+      if (!u || !p) { showAuthError('Please enter username and password'); return; }
+      const fd = new FormData();
+      fd.append('username', u); fd.append('password', p);
+      const res = await fetch('/login', { method: 'POST', body: fd, redirect: 'follow' });
+      if (res.ok || res.redirected) { window.location.href = '/'; }
+      else { showAuthError('Invalid username or password'); }
+    }
+    async function doRegister() {
+      const u = document.getElementById('auth-username').value.trim();
+      const p = document.getElementById('auth-password').value;
+      if (!u || !p) { showAuthError('Please enter username and password'); return; }
+      if (p.length < 4) { showAuthError('Password must be at least 4 characters'); return; }
+      const fd = new FormData();
+      fd.append('username', u); fd.append('password', p);
+      const res = await fetch('/register', { method: 'POST', body: fd, redirect: 'follow' });
+      if (res.ok || res.redirected) { window.location.href = '/'; }
+      else { showAuthError('Username already taken'); }
+    }
+    function showAuthError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg; el.classList.remove('hidden');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>
